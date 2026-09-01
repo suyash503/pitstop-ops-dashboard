@@ -47,6 +47,8 @@ function BookingsPageInner() {
       status: (params.get('status')?.split(',').filter(Boolean) ?? []) as BookingStatus[],
       serviceId: params.get('serviceId') ?? '',
       mechanicId: params.get('mechanicId') ?? '',
+      from: params.get('from') ?? '',
+      to: params.get('to') ?? '',
     }),
     [params],
   );
@@ -79,6 +81,8 @@ function BookingsPageInner() {
         status: filters.status.length ? filters.status : undefined,
         serviceId: filters.serviceId || undefined,
         mechanicId: filters.mechanicId || undefined,
+        from: filters.from || undefined,
+        to: filters.to || undefined,
         page,
         pageSize: PAGE_SIZE,
         sort,
@@ -105,6 +109,8 @@ function BookingsPageInner() {
         status: filters.status.length ? filters.status : undefined,
         serviceId: filters.serviceId || undefined,
         mechanicId: filters.mechanicId || undefined,
+        from: filters.from || undefined,
+        to: filters.to || undefined,
         sort,
         order,
       });
@@ -122,7 +128,8 @@ function BookingsPageInner() {
     Boolean(filters.search) ||
     filters.status.length > 0 ||
     Boolean(filters.serviceId) ||
-    Boolean(filters.mechanicId);
+    Boolean(filters.mechanicId) ||
+    Boolean(filters.from);
 
   return (
     <div className="space-y-4">

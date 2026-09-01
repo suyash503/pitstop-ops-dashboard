@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DateRangeFilter } from '@/components/bookings/date-range-filter';
 import { api } from '@/lib/api';
 import { BOOKING_STATUS_META, BOOKING_STATUSES } from '@/lib/status';
 import type { BookingStatus } from '@/lib/types';
@@ -29,6 +30,8 @@ export type BookingFilters = {
   status: BookingStatus[];
   serviceId: string;
   mechanicId: string;
+  from: string;
+  to: string;
 };
 
 export function BookingsFilters({
@@ -85,7 +88,8 @@ export function BookingsFilters({
     (filters.search ? 1 : 0) +
     (filters.status.length ? 1 : 0) +
     (filters.serviceId ? 1 : 0) +
-    (filters.mechanicId ? 1 : 0);
+    (filters.mechanicId ? 1 : 0) +
+    (filters.from ? 1 : 0);
 
   function toggleStatus(status: BookingStatus) {
     const next = filters.status.includes(status)
@@ -168,6 +172,12 @@ export function BookingsFilters({
           ))}
         </SelectContent>
       </Select>
+
+      <DateRangeFilter
+        from={filters.from}
+        to={filters.to}
+        onChange={(next) => onChange({ from: next.from ?? '', to: next.to ?? '' })}
+      />
 
       {activeCount > 0 ? (
         <Button variant="ghost" size="sm" className="h-9" onClick={onReset}>
