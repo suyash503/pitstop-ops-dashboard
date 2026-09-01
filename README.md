@@ -12,9 +12,9 @@ portfolio project.
 >
 > | | |
 > |---|---|
-> | Dashboard | _deployment pending_ |
-> | API | _deployment pending_ |
-> | API docs (Swagger) | _deployment pending_ |
+> | Dashboard | **https://web-omega-tawny-74.vercel.app** |
+> | API | **https://pitstop-ops.duckdns.org/api** |
+> | API docs (Swagger) | **https://pitstop-ops.duckdns.org/api/docs** |
 
 ---
 
