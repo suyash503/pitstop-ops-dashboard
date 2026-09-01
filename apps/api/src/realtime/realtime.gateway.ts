@@ -42,6 +42,15 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   @WebSocketServer()
   server!: Server;
 
+  /**
+   * Ids of sockets that authenticated successfully.
+   *
+   * Tracked explicitly rather than read off the Socket.IO namespace, because
+   * this number decides whether the simulator runs at all — and it should count
+   * only clients that got past the handshake, not ones mid-rejection.
+   */
+  private readonly viewers = new Set<string>();
+
   constructor(
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
@@ -61,7 +70,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     try {
       await this.jwt.verifyAsync(token, { secret: this.config.getOrThrow<string>('JWT_SECRET') });
-      this.logger.log(`Socket connected: ${client.id} (${this.clientCount()} online)`);
+      this.viewers.add(client.id);
+      this.logger.log(`Socket connected: ${client.id} (${this.viewers.size} online)`);
     } catch {
       this.logger.warn(`Rejected socket ${client.id}: invalid token`);
       client.emit('unauthorized', { message: 'Invalid token' });
@@ -70,11 +80,17 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   handleDisconnect(client: Socket): void {
-    this.logger.log(`Socket disconnected: ${client.id} (${this.clientCount()} online)`);
+    this.viewers.delete(client.id);
+    this.logger.log(`Socket disconnected: ${client.id} (${this.viewers.size} online)`);
   }
 
-  private clientCount(): number {
-    return this.server?.sockets instanceof Map ? this.server.sockets.size : 0;
+  /** How many authenticated dashboards are open right now. */
+  get viewerCount(): number {
+    return this.viewers.size;
+  }
+
+  hasViewers(): boolean {
+    return this.viewers.size > 0;
   }
 
   emitBookingCreated(payload: BookingCreatedPayload): void {

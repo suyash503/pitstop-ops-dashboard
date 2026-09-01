@@ -277,6 +277,13 @@ same state machine, writes the same audit rows and fires the same events as a re
 there is no separate "demo mode" code path. Set `SIMULATOR_ENABLED=false` and you have a fully
 functional dashboard, just a quiet one.
 
+**It only runs while a dashboard is connected.** Left unattended it writes roughly ninety bookings a
+day, which buries the seeded ninety-day history under a spike on today and makes every chart
+misrepresent the business — the seed's realism gets eaten by the traffic that proves the thing is
+live. Gating on the gateway's authenticated-viewer count fixes that, and stops a demo consuming
+database and compute indefinitely when nobody is looking. Sockets that fail the handshake are not
+counted, so an unauthenticated scanner cannot start it.
+
 ---
 
 ## Design decisions and tradeoffs
@@ -329,7 +336,7 @@ the UI hid the button.
 ## Tests and CI
 
 ```bash
-npm test --workspace apps/api        # 18 tests
+npm test --workspace apps/api        # 24 tests
 ```
 
 Unit tests cover the logic where a mistake would be invisible until it mattered:

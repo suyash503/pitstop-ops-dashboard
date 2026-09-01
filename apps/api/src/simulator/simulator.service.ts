@@ -3,7 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { BookingStatus } from '@prisma/client';
 import { nextHappyPathStatus } from '../common/booking-status';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { BookingsService } from '../bookings/bookings.service';
+
+const OPEN_STATUSES = [
+  BookingStatus.PENDING,
+  BookingStatus.ASSIGNED,
+  BookingStatus.ON_THE_WAY,
+  BookingStatus.IN_PROGRESS,
+];
+
+/** Keep at least this much live work on the board. */
+const MIN_OPEN_BOOKINGS = 12;
 
 /**
  * Ops traffic simulator.
@@ -18,26 +29,24 @@ import { BookingsService } from '../bookings/bookings.service';
  * same audit rows and fires the same WebSocket events as a real operator action.
  * Switching it off with SIMULATOR_ENABLED=false leaves a completely functional
  * dashboard — just a quiet one.
+ *
+ * It only runs while at least one dashboard is connected. Left running
+ * unattended it writes roughly ninety bookings a day, which buries the seeded
+ * ninety-day history under a spike on today and makes the charts misrepresent
+ * the business. Gating on viewers keeps the demo honest and stops it consuming
+ * resources when nobody is looking.
  */
-const OPEN_STATUSES = [
-  BookingStatus.PENDING,
-  BookingStatus.ASSIGNED,
-  BookingStatus.ON_THE_WAY,
-  BookingStatus.IN_PROGRESS,
-];
-
-/** Keep at least this much live work on the board. */
-const MIN_OPEN_BOOKINGS = 12;
-
 @Injectable()
 export class SimulatorService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SimulatorService.name);
   private timer: NodeJS.Timeout | null = null;
   private running = false;
+  private idleTicks = 0;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly bookings: BookingsService,
+    private readonly realtime: RealtimeGateway,
     private readonly config: ConfigService,
   ) {}
 
@@ -69,6 +78,28 @@ export class SimulatorService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async tick(): Promise<void> {
+    // Only generate traffic while somebody is actually watching.
+    //
+    // Left unattended this writes ~90 bookings a day, which quietly buries the
+    // seeded 90-day history under a spike on today and makes every chart lie
+    // about the shape of the business. Gating on viewers also means the demo
+    // stops consuming database and compute when nobody is looking, which is the
+    // honest thing for something that runs on a free tier indefinitely.
+    if (!this.realtime.hasViewers()) {
+      this.idleTicks++;
+      // Log on the first idle tick and then rarely, so the reason for silence is
+      // discoverable in the logs without flooding them.
+      if (this.idleTicks === 1 || this.idleTicks % 100 === 0) {
+        this.logger.log(`Idle: no dashboards connected, skipping (${this.idleTicks} ticks)`);
+      }
+      return;
+    }
+
+    if (this.idleTicks > 0) {
+      this.logger.log(`Resuming: ${this.realtime.viewerCount} dashboard(s) connected`);
+      this.idleTicks = 0;
+    }
+
     const open = await this.prisma.booking.count({ where: { status: { in: OPEN_STATUSES } } });
 
     // A booking needs four transitions to reach COMPLETED, so creating on ~1 tick
