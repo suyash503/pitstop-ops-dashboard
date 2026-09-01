@@ -42,8 +42,8 @@ over time, status and service-category breakdowns, and a live activity feed. Ran
 7 / 30 / 90 days.
 
 **Bookings** — a full operations table: free-text search across booking code, customer, vehicle
-registration, service and mechanic; multi-select status filter; service and mechanic filters;
-sortable columns; pagination; CSV export of the current selection. Filter state lives in the URL,
+registration, service and mechanic; multi-select status filter; service and mechanic filters; a date
+range with presets; sortable columns; pagination; CSV export of the current selection. Filter state lives in the URL,
 so a filtered view is a link you can send someone.
 
 **Booking detail** — the complete audit timeline of a job, plus customer, vehicle and mechanic.
