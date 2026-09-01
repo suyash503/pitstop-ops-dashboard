@@ -1,0 +1,16 @@
+# Caddy obtains and renews the Let's Encrypt certificate automatically — this is
+# the whole reason the backend has a real hostname rather than a bare EC2 IP.
+# Without HTTPS the Vercel frontend cannot call it at all: the browser blocks
+# the request as mixed content, and the WebSocket upgrade fails the same way.
+{$DOMAIN} {
+	encode gzip
+
+	# Socket.IO upgrades in place on /events, so no special websocket handling is
+	# needed — reverse_proxy passes Upgrade/Connection headers through.
+	reverse_proxy api:3001
+
+	log {
+		output stdout
+		format console
+	}
+}
