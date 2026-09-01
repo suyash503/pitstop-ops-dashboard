@@ -22,7 +22,11 @@
 import { randomUUID } from 'node:crypto';
 import { fakerEN_IN as faker } from '@faker-js/faker';
 import { PrismaClient, BookingStatus, MechanicStatus, FuelType, Role } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+// Default import, not `import * as`. Newer Node strips TypeScript natively and
+// loads this file as ESM, where a namespace import of a CommonJS module does not
+// expose its functions — bcrypt.hash comes back undefined. The default import
+// resolves to module.exports under both ESM and ts-node's CommonJS output.
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
