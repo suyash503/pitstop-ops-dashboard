@@ -16,6 +16,12 @@ portfolio project.
 > | API | **https://pitstop-ops.duckdns.org/api** |
 > | API docs (Swagger) | **https://pitstop-ops.duckdns.org/api/docs** |
 
+![Live updates](docs/images/live-updates.gif)
+
+*Nothing is being clicked here. Booking statuses advance, KPIs move and new-booking
+notifications arrive on their own over a WebSocket, driven by the ops simulator on
+the backend.*
+
 ---
 
 ## Contents
@@ -55,6 +61,23 @@ user sees the control disabled with the reason.
 **Customers** — booking count, vehicle count and lifetime value from completed work.
 
 Everything updates live. Open the dashboard in two tabs and change a booking status in one.
+
+### Screens
+
+| Overview | Bookings |
+|---|---|
+| ![Overview](docs/images/overview.png) | ![Bookings](docs/images/bookings.png) |
+
+| Booking detail | Mechanics |
+|---|---|
+| ![Booking detail](docs/images/booking-detail.png) | ![Mechanics](docs/images/mechanics.png) |
+
+<details>
+<summary>Light theme</summary>
+
+![Overview in light theme](docs/images/overview-light.png)
+
+</details>
 
 ---
 
