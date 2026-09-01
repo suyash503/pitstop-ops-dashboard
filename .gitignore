@@ -1,0 +1,32 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# test / coverage
+coverage/
+
+# caddy state (prod volume, never committed)
+caddy_data/
+caddy_config/
+
+# local agent/editor session settings
+.claude/settings.local.json

@@ -1,0 +1,22 @@
+{
+  "name": "pitstop-ops",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PitStop Ops — live vehicle service operations dashboard (Next.js + NestJS + Postgres)",
+  "workspaces": [
+    "apps/api"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "api:dev": "npm run start:dev --workspace apps/api",
+    "api:seed": "npm run seed --workspace apps/api",
+    "web:dev": "npm run dev --prefix apps/web"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
