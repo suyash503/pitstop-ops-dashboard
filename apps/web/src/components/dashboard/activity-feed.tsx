@@ -30,7 +30,10 @@ export function ActivityFeed({ items }: { items: ActivityItem[] }) {
         <CardTitle className="text-sm font-medium">Live activity</CardTitle>
         <CardDescription className="text-xs">Every status change, newest first</CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
+      {/* Capped and internally scrollable: the feed holds a dozen entries while
+          the charts beside it are short, and letting it set the row height left
+          a large dead gap under them. */}
+      <CardContent className="max-h-[300px] overflow-y-auto p-0">
         {items.length === 0 ? (
           <EmptyState
             title="No activity yet"
