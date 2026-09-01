@@ -26,7 +26,12 @@ RUN apk add --no-cache openssl tini
 # node_modules is copied rather than reinstalled so the generated Prisma client
 # and its query engine binary are exactly the ones the build was verified with.
 # It also keeps the Prisma CLI available for `migrate deploy` on startup.
+#
+# Both directories are needed: npm hoists most packages to the root, but the
+# lockfile pins Prisma inside the workspace, so copying only the root leaves the
+# image without a Prisma client or CLI at all.
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
@@ -40,4 +45,7 @@ EXPOSE 3001
 ENTRYPOINT ["/sbin/tini", "--"]
 
 # Migrations run on boot; seeding stays manual because the seed truncates.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# `npm run` puts the workspace bin directory on PATH, which resolves the pinned
+# Prisma 6 CLI. Bare `npx prisma` does not, and silently downloads a different
+# major version from the network on every boot.
+CMD ["sh", "-c", "npm run prisma:deploy && node dist/main.js"]
