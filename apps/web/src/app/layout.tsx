@@ -3,7 +3,11 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+// The variable names must match what globals.css maps into Tailwind's theme
+// (--font-sans and --font-geist-mono). Naming the sans font anything else
+// leaves --font-sans undefined and the whole app silently falls back to
+// Times New Roman.
+const geistSans = Geist({ variable: '--font-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
