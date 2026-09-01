@@ -22,15 +22,21 @@ const META = {
 export function LiveIndicator() {
   const { connection, lastEventAt } = useSocket();
   const meta = META[connection];
-  const [, forceTick] = useState(0);
 
-  // Re-render every 10s so "updated 40s ago" stays honest between events.
+  // A ticking clock in state, rather than reading Date.now() during render:
+  // render has to be pure, and a clock read there returns something different
+  // every time for the same props.
+  const [now, setNow] = useState<number | null>(null);
+
   useEffect(() => {
-    const id = setInterval(() => forceTick((n) => n + 1), 10_000);
+    const id = setInterval(() => setNow(Date.now()), 10_000);
     return () => clearInterval(id);
   }, []);
 
-  const secondsAgo = lastEventAt ? Math.round((Date.now() - lastEventAt) / 1000) : null;
+  // Before the first tick, fall back to the event's own timestamp, which reads
+  // as "0s ago" — true, since the event is what just re-rendered this.
+  const secondsAgo =
+    lastEventAt === null ? null : Math.max(0, Math.round(((now ?? lastEventAt) - lastEventAt) / 1000));
 
   return (
     <Tooltip>

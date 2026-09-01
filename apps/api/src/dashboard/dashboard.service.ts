@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BookingStatus, MechanicStatus, Prisma } from '@prisma/client';
 import { CacheService } from '../common/cache/cache.service';
+import { percentageDelta as delta } from '../common/metrics';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { DashboardQueryDto, DashboardRange, RANGE_DAYS } from './dto/dashboard-query.dto';
 
@@ -22,12 +23,6 @@ function istDayBounds(now: Date): { start: Date; end: Date } {
     Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate()) -
     IST_OFFSET_MINUTES * 60_000;
   return { start: new Date(startUtcMs), end: new Date(startUtcMs + 24 * 60 * 60 * 1000 - 1) };
-}
-
-/** Percentage change, rounded to one decimal. Null when there is no baseline. */
-function delta(current: number, previous: number): number | null {
-  if (previous === 0) return current === 0 ? 0 : null;
-  return Math.round(((current - previous) / previous) * 1000) / 10;
 }
 
 @Injectable()

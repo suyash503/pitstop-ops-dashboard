@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { BookingStatus, MechanicStatus, Prisma } from '@prisma/client';
 import { canTransition, IN_FLIGHT_STATUSES } from '../common/booking-status';
 import { CacheService } from '../common/cache/cache.service';
+import { toCsv } from '../common/csv';
 import { Paginated, paginated } from '../common/dto/pagination-query.dto';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
@@ -358,15 +359,9 @@ export class BookingsService {
       'Completed At',
     ];
 
-    const escape = (value: unknown): string => {
-      if (value === null || value === undefined) return '';
-      const str = String(value);
-      // Quote anything containing a delimiter, quote or newline; double inner quotes.
-      return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-    };
-
-    const lines = rows.map((b) =>
-      [
+    return toCsv(
+      header,
+      rows.map((b) => [
         b.code,
         b.customer.name,
         b.customer.phone,
@@ -381,11 +376,7 @@ export class BookingsService {
         b.scheduledAt.toISOString(),
         b.createdAt.toISOString(),
         b.completedAt?.toISOString() ?? '',
-      ]
-        .map(escape)
-        .join(','),
+      ]),
     );
-
-    return [header.join(','), ...lines].join('\n');
   }
 }

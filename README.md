@@ -1,5 +1,7 @@
 # PitStop Ops — Live Vehicle Service Operations Dashboard
 
+[![CI](https://github.com/suyash503/pitstop-ops-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/suyash503/pitstop-ops-dashboard/actions/workflows/ci.yml)
+
 A production-style operations dashboard for a vehicle service business: live bookings, mechanic
 availability, customers and revenue, updating over WebSockets without a page reload.
 
@@ -298,6 +300,24 @@ which Next.js middleware cannot read, so the gate runs in the browser. It only s
 rendering an empty shell to a signed-out visitor — the API enforces authorisation independently on
 every request, which is what actually matters. The OPS role gets a `403` from the API whether or not
 the UI hid the button.
+
+---
+
+## Tests and CI
+
+```bash
+npm test --workspace apps/api        # 18 tests
+```
+
+Unit tests cover the logic where a mistake would be invisible until it mattered:
+the booking state machine (no skipping steps, no reopening a cancelled job, no self-transitions),
+CSV escaping (customer names containing commas and quotes), and the KPI delta calculation
+(growth from a zero baseline is undefined, not `+100%`).
+
+GitHub Actions runs three jobs on every push: API typecheck/test/build, web lint/build, and a
+Docker image build. That last one exists because the two container bugs in this repo's history —
+a missing workspace `node_modules` and a CLI resolving to the wrong Prisma major — were both
+invisible outside the image.
 
 ---
 

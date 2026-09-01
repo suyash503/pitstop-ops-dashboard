@@ -50,9 +50,14 @@ export function BookingsFilters({
   // below so every keystroke does not become a request.
   const [searchDraft, setSearchDraft] = useState(filters.search);
 
-  useEffect(() => {
+  // Resync when the URL changes underneath us (back button, Clear filters).
+  // Adjusting state during render is React's documented answer here — an effect
+  // would render once with the stale value first.
+  const [lastSearch, setLastSearch] = useState(filters.search);
+  if (filters.search !== lastSearch) {
+    setLastSearch(filters.search);
     setSearchDraft(filters.search);
-  }, [filters.search]);
+  }
 
   useEffect(() => {
     if (searchDraft === filters.search) return;

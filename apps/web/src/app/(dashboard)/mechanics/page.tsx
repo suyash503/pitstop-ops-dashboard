@@ -31,7 +31,14 @@ function MechanicsPageInner() {
   const status = (params.get('status') ?? 'ALL') as MechanicStatus | 'ALL';
 
   const [draft, setDraft] = useState(search);
-  useEffect(() => setDraft(search), [search]);
+
+  // Resync when the URL changes underneath us. Adjusting state during render is
+  // React's documented answer; an effect renders once with the stale value first.
+  const [lastSearch, setLastSearch] = useState(search);
+  if (search !== lastSearch) {
+    setLastSearch(search);
+    setDraft(search);
+  }
 
   useEffect(() => {
     if (draft === search) return;

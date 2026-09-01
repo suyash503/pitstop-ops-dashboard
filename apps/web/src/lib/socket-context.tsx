@@ -71,8 +71,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     if (status !== 'authenticated' || !token) {
       socketRef.current?.disconnect();
       socketRef.current = null;
-      setConnection('offline');
-      return;
+      // Queued rather than called inline: a synchronous setState here cascades
+      // an extra render pass on every auth change.
+      const id = setTimeout(() => setConnection('offline'), 0);
+      return () => clearTimeout(id);
     }
 
     const socket = io(`${WS_URL}/events`, {

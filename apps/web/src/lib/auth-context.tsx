@@ -26,26 +26,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // validates it — a token the API no longer accepts is cleared here rather
   // than failing on the first data request.
   useEffect(() => {
-    const stored = tokenStore.get();
-    if (!stored) {
-      setStatus('anonymous');
-      return;
-    }
-
     let cancelled = false;
-    api
-      .me()
-      .then((me) => {
+
+    // Wrapped in an async function so the state updates land in a callback
+    // rather than synchronously in the effect body, which would cascade an
+    // extra render on every mount.
+    void (async () => {
+      const stored = tokenStore.get();
+      if (!stored) {
+        if (!cancelled) setStatus('anonymous');
+        return;
+      }
+
+      try {
+        const me = await api.me();
         if (cancelled) return;
         setUser(me);
         setToken(stored);
         setStatus('authenticated');
-      })
-      .catch(() => {
+      } catch {
         if (cancelled) return;
         tokenStore.clear();
         setStatus('anonymous');
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;

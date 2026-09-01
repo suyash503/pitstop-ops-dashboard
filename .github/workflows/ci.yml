@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A newer push makes an in-flight run irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API — typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # The Prisma client is generated code, not committed, so nothing
+      # typechecks until it exists.
+      - name: Generate Prisma client
+        run: npm run prisma:generate --workspace apps/api
+
+      - name: Typecheck
+        run: npm run typecheck --workspace apps/api
+
+      - name: Test
+        run: npm test --workspace apps/api
+
+      - name: Build
+        run: npm run build --workspace apps/api
+
+  web:
+    name: Web — lint and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Lint
+        working-directory: apps/web
+        run: npx eslint src
+
+      # The API URLs fall back to localhost defaults at build time; the real
+      # values are injected by Vercel at deploy time.
+      - name: Build
+        working-directory: apps/web
+        run: npm run build
+
+  docker:
+    name: API image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Catches the class of bug that only shows up in the image — a missing
+      # workspace node_modules, or a CLI that resolves differently inside the
+      # container than it does on a developer machine.
+      - name: Build image
+        run: docker build -f apps/api/Dockerfile -t pitstop-api:ci .
